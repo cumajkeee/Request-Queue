@@ -34,12 +34,7 @@ var RequestQueue = (function (){
             setLoader.setAttribute("href", queue[i].url);
             setLoader.addEventListener('load', console.log(response), false);
 
-        }
-        if (typeof setLoader!=="undefined"){
-            document.getElementsByTagName("head")[0].appendChild(setLoader);
-        }
-
-        if (queue[i].type == "ajax"){
+        } else if (queue[i].type == "ajax"){
             var xmlhttp = getXmlHttp();
             xmlhttp.open('GET', queue[i].url, true);
             xmlhttp.onreadystatechange = function() {
@@ -55,13 +50,14 @@ var RequestQueue = (function (){
             xmlhttp.send(null);
         }
 
-        if(setLoader !== 'undefined'){
-            setLoader.onload = function (){
-               i++;
-               request.start();
-            }
+        if (typeof setLoader!=="undefined"){
+            document.getElementsByTagName("head")[0].appendChild(setLoader);
         }
 
+        setLoader.onload = function (){
+           i++;
+           request.start();
+        }
     };
 
     RequestQueue = function (){
