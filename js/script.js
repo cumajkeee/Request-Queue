@@ -11,93 +11,66 @@ var RequestQueue = (function (){
         }
         return xmlhttp;
     }
-
     request.load = function (elem){
         queue[queue.length] = elem;
     };
 
+    function multiCb (){
+        console.log('loaded successful');
+        counter++;
+        if (counter === queue[i].length){
+            i++;
+            console.log('array uploaded');
+            request.start(queue);
+        }
+    }
+
+    function singleCb (){
+        console.log('loaded successful');
+        console.log('element uploaded');
+        i++;
+        request.start(queue);
+    }
+
+    function loader (el, callback){
+//        var response = el.type+' file '+el.url+' loaded successful';
+        if (el.type == "js"){
+            setLoader = document.createElement('script');
+            setLoader.setAttribute("src", el.url);
+            setLoader.addEventListener('load', callback, false);
+        }
+        else if (el.type == "css"){
+            setLoader = document.createElement("link");
+            setLoader.setAttribute("rel", "stylesheet");
+            setLoader.setAttribute("href", el.url);
+            setLoader.addEventListener('load', callback, false);
+
+        } else if (el.type == "ajax"){
+            var xmlhttp = getXmlHttp();
+            xmlhttp.open('GET', el.url, true);
+            xmlhttp.onreadystatechange = function() {
+                if (xmlhttp.readyState == 4) {
+                    if(xmlhttp.status == 200) {
+                        callback();
+                    }
+                }
+            };
+            xmlhttp.send(null);
+        }
+
+        if (typeof setLoader!=="undefined"){
+            document.getElementsByTagName("head")[0].appendChild(setLoader);
+        }
+    }
+
     request.start = function (arr){
         if(Object.prototype.toString.call(arr[i]) === '[object Array]' ) {
             for (var k=0; k<arr[i].length; k++){
-                var setLoader = '';
-                counter++;
-                var response = arr[i][k].type+' file '+arr[i][k].url+' loaded successful';
-                if (arr[i][k].type == "js"){
-                    setLoader = document.createElement('script');
-                    setLoader.setAttribute("src", arr[i][k].url);
-                    setLoader.addEventListener('load', console.log(response), false);
-                }
-                else if (arr[i][k].type == "css"){
-                    setLoader = document.createElement("link");
-                    setLoader.setAttribute("rel", "stylesheet");
-                    setLoader.setAttribute("href", arr[i][k].url);
-                    setLoader.addEventListener('load', console.log(response), false);
-
-                } else if (arr[i][k].type == "ajax"){
-                    var xmlhttp = getXmlHttp();
-                    xmlhttp.open('GET', arr[i][k].url, true);
-                    xmlhttp.onreadystatechange = function() {
-                        if (xmlhttp.readyState == 4) {
-                            if(xmlhttp.status == 200) {
-                                console.log(arr[i][k].type+' request completed');
-                                counter++;
-                            }
-                        }
-                    };
-                    xmlhttp.send(null);
-                }
-
-                if (typeof setLoader!=="undefined"){
-                    document.getElementsByTagName("head")[0].appendChild(setLoader);
-                }
-
-                setLoader.onload = function (){
-                    if (counter === arr[i].length){
-                        i++;
-                        request.start(arr);
-                    }
-                };
-
+                loader(arr[i][k], multiCb);
             }
         } else {
-            var setLoader = '';
-            var response = arr[i].type+' file '+arr[i].url+' loaded successful';
-            if (arr[i].type == "js"){
-                setLoader = document.createElement('script');
-                setLoader.setAttribute("src", arr[i].url);
-                setLoader.addEventListener('load', console.log(response), false);
-            }
-            else if (arr[i].type == "css"){
-                setLoader = document.createElement("link");
-                setLoader.setAttribute("rel", "stylesheet");
-                setLoader.setAttribute("href", arr[i].url);
-                setLoader.addEventListener('load', console.log(response), false);
-
-            } else if (arr[i].type == "ajax"){
-                var xmlhttp = getXmlHttp();
-                xmlhttp.open('GET', arr[i].url, true);
-                xmlhttp.onreadystatechange = function() {
-                    if (xmlhttp.readyState == 4) {
-                        if(xmlhttp.status == 200) {
-                            console.log(arr[i].type+' request completed');
-                            i++;
-                            request.start(arr);
-                        }
-                    }
-                };
-                xmlhttp.send(null);
-            }
-
-            if (typeof setLoader!=="undefined"){
-                document.getElementsByTagName("head")[0].appendChild(setLoader);
-            }
-
-            setLoader.onload = function (){
-                i++;
-                request.start(arr);
-            }
+            loader(arr[i], singleCb);
         }
-//        console.log(i);
     };
 
     RequestQueue = function (){
